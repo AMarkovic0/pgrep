@@ -16,38 +16,10 @@ macro_rules! read {
     };
 }
 
-fn open_vim(res_vec: Vec<GrepRes>) -> Result<(), Box<dyn Error>> {
-    if res_vec.len() > 0 {
-        read!(selected as usize);
-        if let Some(selected) = res_vec.get(selected) {
-            Command::new("vim")
-                .arg(format!("+{}", selected.getl()))
-                .arg(fs::canonicalize(&PathBuf::from(selected.getp()))?)
-                .spawn()
-                .expect("ERROR: Vim opening failed.")
-                .wait()
-                .expect("ERROR: Vim execution failed.");
-        }
-
-        return Ok(())
-    }
-
-    Err("No results found.".into())
-}
-
-fn main() -> Result<(), Box<dyn Error>> {
-    let mut grep_cmd = Command::new("grep");
-
-    let s = grep_cmd
-        .args(env::args().skip(1))
-        .arg("-rin")
-        .output()
-        .expect("Error: grep command failed to execute.");
-
-    let res = String::from_utf8(s.stdout).expect("ERROR: Cannot covert grep output to string.");
+fn deserialize_output(res: String) -> Vec<GrepRes> {
     let mut res_vec = Vec::new();
-
     let mut index = 0;
+
     for r in res.split("\n").collect::<Vec<&str>>() {
         if let Some(gres) = GrepRes::new(r) {
             gres.print(index);
@@ -56,7 +28,40 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    open_vim(res_vec)?;
+    res_vec
+}
+
+fn select_output() -> usize {
+    read!(selected as usize);
+    selected
+}
+
+fn open_vim(selected_element: Option<&GrepRes>) {
+    if let Some(selected) = selected_element {
+        Command::new("vim")
+            .arg(format!("+{}", selected.getl()))
+            .arg(fs::canonicalize(&PathBuf::from(selected.getp()))
+                .expect("ERROR: Selected path does not exists."))
+            .spawn()
+            .expect("ERROR: Vim opening failed.")
+            .wait()
+            .expect("ERROR: Vim execution failed.");
+    }
+}
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let res = Command::new("grep")
+        .args(env::args().skip(1))
+        .arg("-rin")
+        .output()
+        .expect("Error: grep command failed to execute.");
+
+    let res = String::from_utf8(res.stdout).expect("ERROR: Cannot covert grep output to string.");
+    let res_vec = deserialize_output(res);
+
+    if res_vec.len() > 0 {
+        open_vim(res_vec.get(select_output()));
+    }
 
     Ok(())
 }
