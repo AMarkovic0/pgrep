@@ -11,7 +11,7 @@ pub struct GrepRes {
 
 impl GrepRes {
     pub fn new(s: &str) -> Option<GrepRes> {
-        match Regex::new(r"(.*):(\d+)(.*)").ok()?.captures(s) {
+        match Regex::new(r"(.*):(\d+):\s+(.*)").ok()?.captures(s) {
             Some(captures) => Some(GrepRes {
                 path: captures[1].to_string(),
                 line: FromStr::from_str(&captures[2]).unwrap(),
