@@ -16,6 +16,33 @@ macro_rules! read {
     };
 }
 
+fn check_for_help() -> bool {
+    let mut ret = false;
+
+    if let Some(_help) = env::args().find(|x| x == "--help") {
+        ret = true;
+    } else if env::args().len() == 1 {
+        ret = true;
+    }
+
+    ret
+}
+
+fn print_help() {
+    println!("Opens seleced file, on selected line from grep recursive search (grep -rn ...).\n");
+    println!("Usage: pgrep [OPTION]... PATTERN [FILE]...
+Search for PATTERN in each FILE and opens file on selected location.
+Example: pgrep -i --include=*.c 'hello world' main.c
+");
+    println!("Here is how the grep commands works: \n");
+    Command::new("grep")
+        .arg("--help")
+        .spawn()
+        .expect("ERROR: Grep failed to execute.")
+        .wait()
+        .expect("ERROR: Grep failed to execute.");
+}
+
 fn deserialize_output(res: String) -> Vec<GrepRes> {
     let mut res_vec = Vec::new();
     let mut index = 0;
@@ -50,6 +77,11 @@ fn open_vim(selected_element: Option<&GrepRes>) {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    if check_for_help() {
+        print_help();
+        return Ok(())
+    }
+
     let res = Command::new("grep")
         .args(env::args().skip(1))
         .arg("-rn")
