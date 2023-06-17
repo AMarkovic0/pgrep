@@ -52,7 +52,7 @@ fn open_vim(selected_element: Option<&GrepRes>) {
 fn main() -> Result<(), Box<dyn Error>> {
     let res = Command::new("grep")
         .args(env::args().skip(1))
-        .arg("-rin")
+        .arg("-rn")
         .output()
         .expect("Error: grep command failed to execute.");
 
