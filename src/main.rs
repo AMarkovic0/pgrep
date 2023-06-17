@@ -11,8 +11,8 @@ use crate::code_grep_results::GrepRes;
 macro_rules! read {
     ($out:ident as $type:ty) => {
         let mut inner = String::new();
-        std::io::stdin().read_line(&mut inner).expect("A String");
-        let $out = inner.trim().parse::<$type>().expect("Parsable");
+        std::io::stdin().read_line(&mut inner).expect("ERROR: String expected.");
+        let $out = inner.trim().parse::<$type>().expect("ERROR: Parsing user input.");
     };
 }
 
@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .output()
         .expect("Error: grep command failed to execute.");
 
-    let res = String::from_utf8(res.stdout).expect("ERROR: Cannot covert grep output to string.");
+    let res = String::from_utf8(res.stdout).expect("ERROR: Cannot convert grep output to string.");
     let res_vec = deserialize_output(res);
 
     if res_vec.len() > 0 {
