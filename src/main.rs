@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .output()
         .expect("Error: grep command failed to execute.");
 
-    let res = String::from_utf8(s.stdout)?;
+    let res = String::from_utf8(s.stdout).expect("ERROR: Cannot covert grep output to string.");
     let mut res_vec = Vec::new();
 
     let mut index = 0;
