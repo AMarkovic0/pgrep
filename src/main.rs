@@ -66,9 +66,11 @@ fn open_vim(res_vec: Vec<GrepRes>) -> Result<(), Box<dyn Error>> {
                 .wait()
                 .expect("ERROR: Vim execution failed.");
         }
+
+        return Ok(())
     }
 
-    Ok(())
+    Err("No results found.".into())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
