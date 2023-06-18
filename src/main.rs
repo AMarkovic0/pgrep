@@ -11,8 +11,8 @@ use crate::code_grep_results::GrepRes;
 macro_rules! read {
     ($out:ident as $type:ty) => {
         let mut inner = String::new();
-        std::io::stdin().read_line(&mut inner).expect("ERROR: String expected.");
-        let $out = inner.trim().parse::<$type>().expect("ERROR: Parsing user input.");
+        std::io::stdin().read_line(&mut inner).expect("ERROR: String expected");
+        let $out = inner.trim().parse::<$type>().expect("ERROR: Parsing user input");
     };
 }
 
@@ -38,9 +38,9 @@ Example: pgrep -i --include=*.c 'hello world' main.c
     Command::new("grep")
         .arg("--help")
         .spawn()
-        .expect("ERROR: Grep failed to execute.")
+        .expect("ERROR: Failed to spwan grep")
         .wait()
-        .expect("ERROR: Grep failed to execute.");
+        .expect("ERROR: Grep failed to execute");
 }
 
 fn deserialize_output(res: String) -> Vec<GrepRes> {
@@ -68,11 +68,11 @@ fn open_vim(selected_element: Option<&GrepRes>) {
         Command::new("vim")
             .arg(format!("+{}", selected.getl()))
             .arg(fs::canonicalize(&PathBuf::from(selected.getp()))
-                .expect("ERROR: Selected path does not exists."))
+                .expect("ERROR: Selected path does not exists"))
             .spawn()
-            .expect("ERROR: Vim opening failed.")
+            .expect("ERROR: Vim opening failed")
             .wait()
-            .expect("ERROR: Vim execution failed.");
+            .expect("ERROR: Vim execution failed");
     }
 }
 
@@ -86,9 +86,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         .args(env::args().skip(1))
         .arg("-rn")
         .output()
-        .expect("Error: grep command failed to execute.");
+        .expect("Error: grep command failed to execute");
 
-    let res = String::from_utf8(res.stdout).expect("ERROR: Cannot convert grep output to string.");
+    let res = String::from_utf8(res.stdout)
+        .expect("ERROR: Cannot convert grep output to string");
     let res_vec = deserialize_output(res);
 
     if res_vec.len() > 0 {

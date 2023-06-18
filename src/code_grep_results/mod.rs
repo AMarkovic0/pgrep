@@ -32,6 +32,6 @@ impl GrepRes {
     }
 
     pub fn print(&self, index: usize) {
-        println!("[{:?}] File: {:?} Line: {:?} Text: {:?}", index, self.path, self.line, self.text);
+        println!("[{}] File: {} Line: {} Text: {}", index, self.path, self.line, self.text);
     }
 }
