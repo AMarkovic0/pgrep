@@ -43,6 +43,9 @@ fn print_help() {
     println!("Usage: pgrep [OPTION]... PATTERN [FILE]...
 Search for PATTERN in each FILE and opens file on selected location.
 Example: pgrep -i --include=*.c 'hello world' main.c
+
+--history Prints history of pgrap call arguments
+--help Prints help message
 ");
     println!("Here is how the grep commands works: \n");
     Command::new("grep")
