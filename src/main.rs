@@ -1,4 +1,5 @@
 mod code_grep_results;
+mod cache_handler;
 
 use std::env;
 use std::error::Error;
@@ -7,6 +8,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use crate::code_grep_results::GrepRes;
+use crate::cache_handler::Cache;
 
 macro_rules! read {
     ($out:ident as $type:ty) => {
@@ -16,16 +18,24 @@ macro_rules! read {
     };
 }
 
-fn check_for_help() -> bool {
+fn check_for(arg: &str) -> bool {
     let mut ret = false;
 
-    if let Some(_help) = env::args().find(|x| x == "--help") {
+    if let Some(_help) = env::args().find(|x| x == arg) {
         ret = true;
     } else if env::args().len() == 1 {
         ret = true;
     }
 
     ret
+}
+
+fn check_for_help() -> bool {
+    check_for("--help")
+}
+
+fn check_for_history() -> bool {
+    check_for("--history")
 }
 
 fn print_help() {
@@ -77,13 +87,25 @@ fn open_vim(selected_element: Option<&GrepRes>) {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let args = env::args()
+        .skip(1)
+        .collect::<Vec<String>>();
+
+    if let Some(c) = Cache::new() {
+        c.cache_history(&args.join(" "))?;
+        if check_for_history() {
+            c.print_history()?;
+            return Ok(())
+        }
+    };
+
     if check_for_help() {
         print_help();
         return Ok(())
     }
 
     let res = Command::new("grep")
-        .args(env::args().skip(1))
+        .args(args)
         .arg("-rn")
         .output()
         .expect("Error: grep command failed to execute");
