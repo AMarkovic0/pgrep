@@ -1,5 +1,6 @@
 mod code_grep_results;
 mod cache_handler;
+mod cli;
 
 use std::env;
 use std::error::Error;
@@ -9,72 +10,6 @@ use std::path::PathBuf;
 
 use crate::code_grep_results::GrepRes;
 use crate::cache_handler::Cache;
-
-macro_rules! read {
-    ($out:ident as $type:ty) => {
-        let mut inner = String::new();
-        std::io::stdin().read_line(&mut inner).expect("ERROR: String expected");
-        let $out = inner.trim().parse::<$type>().expect("ERROR: Parsing user input");
-    };
-}
-
-fn check_for(arg: &str) -> bool {
-    let mut ret = false;
-
-    if let Some(_help) = env::args().find(|x| x == arg) {
-        ret = true;
-    } else if env::args().len() == 1 {
-        ret = true;
-    }
-
-    ret
-}
-
-fn check_for_help() -> bool {
-    check_for("--help")
-}
-
-fn check_for_history() -> bool {
-    check_for("--history")
-}
-
-fn print_help() {
-    println!("Opens seleced file, on selected line from grep recursive search (grep -rn ...).\n");
-    println!("Usage: pgrep [OPTION]... PATTERN [FILE]...
-Search for PATTERN in each FILE and opens file on selected location.
-Example: pgrep -i --include=*.c 'hello world' main.c
-
---history Prints history of pgrap call arguments
---help Prints help message
-");
-    println!("Here is how the grep commands works: \n");
-    Command::new("grep")
-        .arg("--help")
-        .spawn()
-        .expect("ERROR: Failed to spwan grep")
-        .wait()
-        .expect("ERROR: Grep failed to execute");
-}
-
-fn deserialize_output(res: String) -> Vec<GrepRes> {
-    let mut res_vec = Vec::new();
-    let mut index = 0;
-
-    for r in res.split("\n").collect::<Vec<&str>>() {
-        if let Some(gres) = GrepRes::new(r) {
-            gres.print(index);
-            res_vec.push(gres);
-            index += 1;
-        }
-    }
-
-    res_vec
-}
-
-fn select_output() -> usize {
-    read!(selected as usize);
-    selected
-}
 
 fn open_vim(selected_element: Option<&GrepRes>) {
     if let Some(selected) = selected_element {
@@ -96,14 +31,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if let Some(c) = Cache::new() {
         c.cache_history(&args.join(" "))?;
-        if check_for_history() {
+        if cli::check_for_history() {
             c.print_history()?;
             return Ok(())
         }
     };
 
-    if check_for_help() {
-        print_help();
+    if cli::check_for_help() {
+        cli::print_help();
         return Ok(())
     }
 
@@ -115,10 +50,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let res = String::from_utf8(res.stdout)
         .expect("ERROR: Cannot convert grep output to string");
-    let res_vec = deserialize_output(res);
+    let res_vec = GrepRes::deserialize_output(res);
 
     if res_vec.len() > 0 {
-        open_vim(res_vec.get(select_output()));
+        open_vim(res_vec.get(cli::select_output()));
     }
 
     Ok(())

@@ -34,4 +34,17 @@ impl GrepRes {
     pub fn print(&self, index: usize) {
         println!("[{}] File: {} Line: {} Text: {}", index, self.path, self.line, self.text);
     }
+
+    pub fn deserialize_output(res: String) -> Vec<Self> {
+        let mut res_vec = Vec::new();
+
+        for (index, r) in res.split("\n").collect::<Vec<&str>>().iter().enumerate() {
+            if let Some(gres) = GrepRes::new(r) {
+                gres.print(index);
+                res_vec.push(gres);
+            }
+        }
+
+        res_vec
+    }
 }

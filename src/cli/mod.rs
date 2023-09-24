@@ -1,0 +1,57 @@
+    use std::env;
+    use std::process::Command;
+
+    macro_rules! read {
+        ($out:ident as $type:ty) => {
+            let mut inner = String::new();
+            std::io::stdin().read_line(&mut inner).expect("ERROR: String expected");
+            let $out = inner.trim().parse::<$type>().expect("ERROR: Parsing user input");
+        };
+    }
+
+    fn check_for(arg: &str) -> bool {
+        let mut ret = false;
+
+        if let Some(_help) = env::args().find(|x| x == arg) {
+            ret = true;
+        } else if env::args().len() == 1 {
+            ret = true;
+        }
+
+        ret
+    }
+
+    pub fn check_for_help() -> bool {
+        check_for("--help")
+    }
+
+    pub fn check_for_history() -> bool {
+        check_for("--history")
+    }
+
+    pub fn print_help() {
+        println!(
+            "Opens seleced file, on selected line from grep recursive search (grep -rn ...).\n"
+        );
+        println!(
+            "Usage: pgrep [OPTION]... PATTERN [FILE]...
+Search for PATTERN in each FILE and opens file on selected location.
+Example: pgrep -i --include=*.c 'hello world' main.c
+
+--history Prints history of pgrap call arguments
+--help Prints help message
+"
+        );
+        println!("Here is how the grep commands works: \n");
+        Command::new("grep")
+            .arg("--help")
+            .spawn()
+            .expect("ERROR: Failed to spwan grep")
+            .wait()
+            .expect("ERROR: Grep failed to execute");
+    }
+
+    pub fn select_output() -> usize {
+        read!(selected as usize);
+        selected
+    }
