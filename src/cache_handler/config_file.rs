@@ -1,60 +1,46 @@
-use std::rc::Rc;
-use std::path::Path;
+use std::path::PathBuf;
 use std::fs::File;
 use std::fs::OpenOptions;
 use std::io::prelude::*;
 
-pub enum FilePath {
-    Raw(String),
-    Referenced(Rc<String>)
-}
-
-impl FilePath {
-    fn format_filename(&self, fname: &str) -> String {
-        match self {
-            FilePath::Raw(s) => format!("{}/{}", s, fname),
-            FilePath::Referenced(r) => format!("{}/{}", *r, fname)
-        }
-    }
-}
-
 pub struct ConfigFile {
-    path: FilePath,
-    name: String
+    path: PathBuf,
 }
 
 impl ConfigFile {
-    pub fn new(fpath: FilePath, fname: String) -> std::io::Result<ConfigFile> {
-        let full_path = fpath.format_filename(&fname);
+    pub fn new(mut fpath: PathBuf, fname: String) -> std::io::Result<ConfigFile> {
+        fpath.push(fname);
 
-        if !Path::new(&full_path).exists() {
-            File::create(&full_path)?;
+        if !fpath.exists() {
+            File::create(fpath.to_str().expect("ERROR: Failed getting path to home dir"))?;
         }
 
         Ok(ConfigFile {
             path: fpath,
-            name: fname
         })
     }
 
+    fn get_path_str(&self) -> std::io::Result<&str> {
+        match self.path.to_str() {
+            Some(s) => Ok(s),
+            None => Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Path str not found"))
+        }
+    }
+
     pub fn read(&self) -> std::io::Result<String> {
-        let full_path = self.path.format_filename(&self.name);
         let mut contents = String::new();
 
-        File::open(&full_path)?
+        File::open(self.get_path_str()?)?
             .read_to_string(&mut contents)?;
 
         Ok(contents)
     }
 
     pub fn write_line(&self, line: &String) -> std::io::Result<()> {
-        let full_path = self.path.format_filename(&self.name);
-
         let mut file = OpenOptions::new()
             .write(true)
             .append(true)
-            .open(full_path)
-            .unwrap();
+            .open(String::from(self.get_path_str()?))?;
 
         if let Err(e) = writeln!(file, "{}", &line) {
             return Err(e)

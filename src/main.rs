@@ -29,7 +29,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .skip(1)
         .collect::<Vec<String>>();
 
-    if let Some(c) = Cache::new() {
+    let home_dir_path = env::home_dir().expect("ERROR: Failed getting path to home dir");
+    if let Some(c) = Cache::new(home_dir_path) {
         c.cache_history(&args.join(" "))?;
         if cli::check_for_history() {
             c.print_history()?;

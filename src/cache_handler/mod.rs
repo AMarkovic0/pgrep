@@ -1,43 +1,27 @@
 mod config_file;
 
-use std::env;
-use std::process::Command;
-use std::path::Path;
-use std::rc::Rc;
-
-use crate::cache_handler::config_file::FilePath;
+use std::path::PathBuf;
 use crate::cache_handler::config_file::ConfigFile;
 
 pub struct Cache {
-    path:  FilePath,
     config: ConfigFile,
     history: ConfigFile
 }
 
 impl Cache {
-    pub fn new() -> Option<Cache> {
-        if let Some(path) = env::home_dir() {
-            let path = Rc::new(format!("{}/{}", path.display(), ".pgrep"));
-
-            if !Path::new(&(*path)).exists() {
-                Command::new("mkdir")
-                    .arg(&(*path))
-                    .spawn()
-                    .expect("ERROR: Failed to wpawn mkdir")
-                    .wait()
-                    .expect("ERROR: mkdir execution failed");
-            }
+    pub fn new(mut home_dir: PathBuf) -> Option<Cache> {
+        if home_dir.exists() {
+            home_dir.push(".pgrep");
 
             return Some(Cache {
-                path: FilePath::Referenced(Rc::clone(&path)),
                 config: ConfigFile::new(
-                    FilePath::Referenced(Rc::clone(&path)),
+                    home_dir.clone(),
                     "config.toml".to_string()
                 ).expect("ERROR: Failed to create config file"),
                 history: ConfigFile::new(
-                    FilePath::Referenced(Rc::clone(&path)),
+                    home_dir.clone(),
                     "history.log".to_string()
-                ).expect("ERROR: Failed to create history file")
+                ).expect("ERROR: Failed to create history file"),
             })
         }
 
