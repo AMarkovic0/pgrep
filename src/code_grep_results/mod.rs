@@ -31,6 +31,10 @@ impl GrepRes {
         &self.path
     }
 
+    pub fn gett(&self) -> &String {
+        &self.text
+    }
+
     pub fn print(&self, index: usize) {
         println!("[{}] File: {} Line: {} Text: {}", index, self.path, self.line, self.text);
     }
